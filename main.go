@@ -38,7 +38,7 @@ func HandleConnection (conn net.Conn, Q chan message) {
 
 }
 
-type Mess struct {
+type Message struct {
     Selector string
     Arg string
 }
