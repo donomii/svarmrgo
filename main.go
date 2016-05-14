@@ -4,12 +4,15 @@ import (
     "bufio"
     "fmt"
     "os"
+	"encoding/json"
 )
 
 type message struct {
     port net.Conn
     raw string
 }
+
+type MessageHandler func(net.Conn, Message) 
 
 var connList []net.Conn
 
@@ -45,8 +48,8 @@ type Message struct {
 
 
 func CliConnect() net.Conn {
-    if len(os.Args) < 4 {
-        panic ("Use: sendMessage host port selector message")
+    if len(os.Args) < 2 {
+        panic ("Use:  host port")
     }
     server := os.Args[1]
     port := os.Args[2]
@@ -60,3 +63,29 @@ func ConnectHub(server string, port string) net.Conn {
     }
     return conn
 }
+
+func RespondWith(conn net.Conn, response svarmrgo.Message) {
+	out, _ := json.Marshal(response)
+	fmt.Fprintf(conn, fmt.Sprintf("%s\r\n", out))
+}
+
+func HandleInputs (conn net.Conn, callback MessageHandler) {
+    fmt.Sprintf("%V", conn)
+    //time.Sleep(500 * time.Millisecond)
+    r := bufio.NewReader(conn)
+    for {
+        l,_ := r.ReadString('\n')
+        if (l!="") {
+                var text = l
+                fmt.Printf("%v\n", text)
+                var m Message
+                err := json.Unmarshal([]byte(text), &m)
+                if err != nil {
+                    fmt.Println("error decoding message!:", err)
+                } else {
+                    fmt.Printf("%v", m)
+                    callback(conn, m)
+                }
+            }
+        }
+    }
