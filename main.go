@@ -64,7 +64,7 @@ func ConnectHub(server string, port string) net.Conn {
     return conn
 }
 
-func RespondWith(conn net.Conn, response svarmrgo.Message) {
+func RespondWith(conn net.Conn, response Message) {
 	out, _ := json.Marshal(response)
 	fmt.Fprintf(conn, fmt.Sprintf("%s\r\n", out))
 }
