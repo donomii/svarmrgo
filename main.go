@@ -5,7 +5,7 @@ import (
     "fmt"
     "os"
 	"encoding/json"
-    "time"
+//    "time"
 )
 
 type message struct {
@@ -23,10 +23,21 @@ type MessageHandler func(net.Conn, Message)
 
 var connList []net.Conn
 
+func Debug(s string) {
+    //fmt.Println(s)
+}
+
+
+func debug(s string) {
+    //fmt.Println(s)
+}
+
 func Broadcast(Q chan message) {
     for {
+            debug("Outer broadcast loop")
             m := <- Q
             for _, c := range connList {
+                debug("Inner broadcast loop")
                 if ( c != nil && c != m.port) {
                     //fmt.Printf("%V\n", c)
                     c.Write([]byte(m.raw))
@@ -38,9 +49,10 @@ func Broadcast(Q chan message) {
 
 func HandleConnection (conn net.Conn, Q chan message) {
     scanner := bufio.NewScanner(conn)
-
     for {
+            debug("Outer scanner loop")
             for scanner.Scan() {
+                debug("Inner scanner loop")
                 var m message = message{ conn, scanner.Text() }
                 Q <- m
         }
@@ -75,9 +87,10 @@ func RespondWith(conn net.Conn, response Message) {
 
 func HandleInputs (conn net.Conn, callback MessageHandler) {
     //fmt.Sprintf("%V", conn)
-    time.Sleep(500 * time.Millisecond)
+    //time.Sleep(500 * time.Millisecond)
     r := bufio.NewReader(conn)
     for {
+        debug("Outer handle inputs loop")
         l, err := r.ReadString('\n')
 		if err != nil {
 			os.Exit(1)
