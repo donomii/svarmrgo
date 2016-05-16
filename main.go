@@ -21,7 +21,7 @@ func Broadcast(Q chan message) {
             m := <- Q
             for _, c := range connList {
                 if ( c != nil && c != m.port) {
-                    fmt.Printf("%V\n", c)
+                    //fmt.Printf("%V\n", c)
                     c.Write([]byte(m.raw))
                     c.Write([]byte("\r\n"))
                 }
@@ -66,24 +66,24 @@ func ConnectHub(server string, port string) net.Conn {
 
 func RespondWith(conn net.Conn, response Message) {
 	out, _ := json.Marshal(response)
-	fmt.Fprintf(conn, fmt.Sprintf("%s\r\n", out))
+	fmt.Fprintf(conn, fmt.Sprintf("%s\n", out))
 }
 
 func HandleInputs (conn net.Conn, callback MessageHandler) {
-    fmt.Sprintf("%V", conn)
+    //fmt.Sprintf("%V", conn)
     //time.Sleep(500 * time.Millisecond)
     r := bufio.NewReader(conn)
     for {
         l,_ := r.ReadString('\n')
         if (l!="") {
                 var text = l
-                fmt.Printf("%v\n", text)
+                //fmt.Printf("%v\n", text)
                 var m Message
                 err := json.Unmarshal([]byte(text), &m)
                 if err != nil {
-                    fmt.Println("error decoding message!:", err)
+                    //fmt.Println("error decoding message!:", err)
                 } else {
-                    fmt.Printf("%v", m)
+                    //fmt.Printf("%v", m)
                     callback(conn, m)
                 }
             }
