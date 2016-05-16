@@ -12,7 +12,13 @@ type message struct {
     raw string
 }
 
-type MessageHandler func(net.Conn, Message) 
+type Message struct {
+    Selector string
+    Arg string
+}
+
+
+type MessageHandler func(net.Conn, Message)
 
 var connList []net.Conn
 
@@ -41,10 +47,6 @@ func HandleConnection (conn net.Conn, Q chan message) {
 
 }
 
-type Message struct {
-    Selector string
-    Arg string
-}
 
 
 func CliConnect() net.Conn {
@@ -61,6 +63,7 @@ func ConnectHub(server string, port string) net.Conn {
     if err != nil {
         panic(fmt.Sprintf("Could not connect to hub because: %v", err))
     }
+    fmt.Printf("Connected to server\n")
     return conn
 }
 
@@ -74,7 +77,10 @@ func HandleInputs (conn net.Conn, callback MessageHandler) {
     //time.Sleep(500 * time.Millisecond)
     r := bufio.NewReader(conn)
     for {
-        l,_ := r.ReadString('\n')
+        l, err := r.ReadString('\n')
+		if err != nil {
+			os.Exit(1)
+		}
         if (l!="") {
                 var text = l
                 //fmt.Printf("%v\n", text)
