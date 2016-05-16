@@ -5,6 +5,7 @@ import (
     "fmt"
     "os"
 	"encoding/json"
+    "time"
 )
 
 type message struct {
@@ -69,12 +70,12 @@ func ConnectHub(server string, port string) net.Conn {
 
 func RespondWith(conn net.Conn, response Message) {
 	out, _ := json.Marshal(response)
-	fmt.Fprintf(conn, fmt.Sprintf("%s\n", out))
+	fmt.Fprintf(conn, fmt.Sprintf("%s\r\n", out))
 }
 
 func HandleInputs (conn net.Conn, callback MessageHandler) {
     //fmt.Sprintf("%V", conn)
-    //time.Sleep(500 * time.Millisecond)
+    time.Sleep(500 * time.Millisecond)
     r := bufio.NewReader(conn)
     for {
         l, err := r.ReadString('\n')
@@ -83,14 +84,16 @@ func HandleInputs (conn net.Conn, callback MessageHandler) {
 		}
         if (l!="") {
                 var text = l
-                //fmt.Printf("%v\n", text)
-                var m Message
-                err := json.Unmarshal([]byte(text), &m)
-                if err != nil {
-                    //fmt.Println("error decoding message!:", err)
+                if len(text)>10 {
+                    var m Message
+                    err := json.Unmarshal([]byte(text), &m)
+                    if err != nil {
+                        fmt.Println("error decoding message!:", err)
+                    } else {
+                            callback(conn, m)
+                    }
                 } else {
-                    //fmt.Printf("%v", m)
-                    callback(conn, m)
+                    //fmt.Printf("Invalid message: '%v'\n", text)
                 }
             }
         }
