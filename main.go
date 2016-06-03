@@ -16,6 +16,7 @@ type message struct {
 type Message struct {
     Selector string
     Arg string
+    NamedArgs map[string]string
 }
 
 
@@ -30,21 +31,6 @@ func Debug(s string) {
 
 func debug(s string) {
     //fmt.Println(s)
-}
-
-func Broadcast(Q chan message) {
-    for {
-            debug("Outer broadcast loop")
-            m := <- Q
-            for _, c := range connList {
-                debug("Inner broadcast loop")
-                if ( c != nil && c != m.port) {
-                    //fmt.Printf("%V\n", c)
-                    c.Write([]byte(m.raw))
-                    c.Write([]byte("\r\n"))
-                }
-            }
-        }
 }
 
 func HandleConnection (conn net.Conn, Q chan message) {
@@ -82,7 +68,7 @@ func ConnectHub(server string, port string) net.Conn {
 
 func RespondWith(conn net.Conn, response Message) {
 	out, _ := json.Marshal(response)
-	fmt.Fprintf(conn, fmt.Sprintf("%s\r\n", out))
+	fmt.Fprintf(conn, fmt.Sprintf("%s\n", out))
 }
 
 func HandleInputs (conn net.Conn, callback MessageHandler) {
@@ -106,8 +92,10 @@ func HandleInputs (conn net.Conn, callback MessageHandler) {
                             callback(conn, m)
                     }
                 } else {
-                    //fmt.Printf("Invalid message: '%v'\n", text)
+                    fmt.Printf("Invalid message: '%V'\n", []byte(text))
                 }
+            } else {
+                fmt.Printf("Empty message received\n")
             }
         }
     }
