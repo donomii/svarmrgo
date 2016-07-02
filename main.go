@@ -1,3 +1,4 @@
+//Support functions for svarmr
 package svarmrgo
 import (
         "os/exec"
@@ -36,6 +37,7 @@ func debug(s string) {
     //fmt.Println(s)
 }
 
+//Run exec.Cmd, capture and return STDOUT
 func QuickCommandStdout (cmd *exec.Cmd) string{
     fmt.Println()
     in := strings.NewReader("")
@@ -52,6 +54,7 @@ func QuickCommandStdout (cmd *exec.Cmd) string{
     return ret
 }
 
+//Run exec.Cmd, capture and return STDERR
 func QuickCommandStderr (cmd *exec.Cmd) string{
     fmt.Println()
     in := strings.NewReader("")
@@ -82,6 +85,9 @@ func HandleConnection (conn net.Conn, Q chan message) {
 
 
 
+//Read command line options, connect to svarmr server as directed from the command line
+//
+//Command line must be "program host port" where host and port are the connection details for the svarmr server
 func CliConnect() net.Conn {
     if len(os.Args) < 2 {
         fmt.Println ("Use: svarmrModule  host port")
@@ -93,25 +99,34 @@ func CliConnect() net.Conn {
     return ConnectHub(server, port)
 }
 
+//Connect to a svarmr server on host:port
 func ConnectHub(server string, port string) net.Conn {
     conn, err := net.Dial("tcp", fmt.Sprintf("%v:%v", server, port))
     if err != nil {
         fmt.Printf("\nCould not connect to hub because: %v\n\n", err)
         os.Exit(1)
     }
-    fmt.Printf("Connected to server\n")
+    //fmt.Printf("Connected to server\n")
     return conn
 }
 
+//Respond to a message.  Messages will soon contain unique ID numbers, allowing responses to be matched to messages
 func (m *Message) Respond(conn net.Conn, response Message) {
 	out, _ := json.Marshal(response)
 	fmt.Fprintf(conn, fmt.Sprintf("%s\n", out))
 }
 
+//Send a message.  Messages will soon contain unique ID numbers, allowing responses to be matched to messages
 func SendMessage(conn net.Conn, response Message) {
 	out, _ := json.Marshal(response)
 	fmt.Fprintf(conn, fmt.Sprintf("%s\n", out))
 }
+
+//Handle incoming messages.  This will read a message, unpack the JSON, and the call MessageHandler with the unpacked message
+//
+// MessageHandler must look like:
+//
+//    func handleMessage (conn net.Conn, m svarmrgo.Message)
 func HandleInputs (conn net.Conn, callback MessageHandler) {
     //fmt.Sprintf("%V", conn)
     //time.Sleep(500 * time.Millisecond)
