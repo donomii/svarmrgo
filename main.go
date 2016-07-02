@@ -1,10 +1,13 @@
 package svarmrgo
 import (
+        "os/exec"
+    "strings"
+    "bytes"
     "net"
     "bufio"
     "fmt"
     "os"
-	"encoding/json"
+    "encoding/json"
 //    "time"
 )
 
@@ -33,6 +36,37 @@ func debug(s string) {
     //fmt.Println(s)
 }
 
+func QuickCommandStdout (cmd *exec.Cmd) string{
+    fmt.Println()
+    in := strings.NewReader("")
+    cmd.Stdin = in 
+    var out bytes.Buffer
+    cmd.Stdout = &out
+    var err bytes.Buffer
+    cmd.Stderr = &err
+    //res := cmd.Run()
+    cmd.Run()
+    //fmt.Printf("Command result: %v\n", res)
+    ret := fmt.Sprintf("%s", out)
+    //fmt.Println(ret)
+    return ret
+}
+
+func QuickCommandStderr (cmd *exec.Cmd) string{
+    fmt.Println()
+    in := strings.NewReader("")
+    cmd.Stdin = in 
+    var out bytes.Buffer
+    cmd.Stdout = &out
+    var err bytes.Buffer
+    cmd.Stderr = &err
+    cmd.Run()
+    //fmt.Printf("Command result: %v\n", res)
+    ret := fmt.Sprintf("%s", err)
+    //fmt.Println(ret)
+    return ret
+}
+
 func HandleConnection (conn net.Conn, Q chan message) {
     scanner := bufio.NewScanner(conn)
     for {
@@ -50,7 +84,9 @@ func HandleConnection (conn net.Conn, Q chan message) {
 
 func CliConnect() net.Conn {
     if len(os.Args) < 2 {
-        panic ("Use:  host port")
+        fmt.Println ("Use: svarmrModule  host port")
+        fmt.Println ("host: server ip, port: server port")
+        os.Exit(1)
     }
     server := os.Args[1]
     port := os.Args[2]
@@ -60,17 +96,22 @@ func CliConnect() net.Conn {
 func ConnectHub(server string, port string) net.Conn {
     conn, err := net.Dial("tcp", fmt.Sprintf("%v:%v", server, port))
     if err != nil {
-        panic(fmt.Sprintf("Could not connect to hub because: %v", err))
+        fmt.Printf("\nCould not connect to hub because: %v\n\n", err)
+        os.Exit(1)
     }
     fmt.Printf("Connected to server\n")
     return conn
 }
 
-func RespondWith(conn net.Conn, response Message) {
+func (m *Message) Respond(conn net.Conn, response Message) {
 	out, _ := json.Marshal(response)
 	fmt.Fprintf(conn, fmt.Sprintf("%s\n", out))
 }
 
+func SendMessage(conn net.Conn, response Message) {
+	out, _ := json.Marshal(response)
+	fmt.Fprintf(conn, fmt.Sprintf("%s\n", out))
+}
 func HandleInputs (conn net.Conn, callback MessageHandler) {
     //fmt.Sprintf("%V", conn)
     //time.Sleep(500 * time.Millisecond)
