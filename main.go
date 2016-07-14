@@ -18,6 +18,7 @@ type message struct {
 }
 
 type Message struct {
+    Conn  net.Conn
     Selector string
     Arg string
     NamedArgs map[string]string
@@ -111,9 +112,9 @@ func ConnectHub(server string, port string) net.Conn {
 }
 
 //Respond to a message.  Messages will soon contain unique ID numbers, allowing responses to be matched to messages
-func (m *Message) Respond(conn net.Conn, response Message) {
+func (m *Message) Respond(response Message) {
 	out, _ := json.Marshal(response)
-	fmt.Fprintf(conn, fmt.Sprintf("%s\n", out))
+	fmt.Fprintf(m.Conn, fmt.Sprintf("%s\n", out))
 }
 
 //Send a message.  Messages will soon contain unique ID numbers, allowing responses to be matched to messages
@@ -122,7 +123,7 @@ func SendMessage(conn net.Conn, response Message) {
 	fmt.Fprintf(conn, fmt.Sprintf("%s\n", out))
 }
 
-//Handle incoming messages.  This will read a message, unpack the JSON, and the call MessageHandler with the unpacked message
+//Handle incoming messages.  This will read a message, unpack the JSON, and call the MessageHandler with the unpacked message
 //
 // MessageHandler must look like:
 //
@@ -145,6 +146,7 @@ func HandleInputs (conn net.Conn, callback MessageHandler) {
                     if err != nil {
                         fmt.Println("error decoding message!:", err)
                     } else {
+			    m.Conn = conn
                             callback(conn, m)
                     }
                 } else {
