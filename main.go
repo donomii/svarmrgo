@@ -150,7 +150,7 @@ func HandleInputs (conn net.Conn, callback MessageHandler) {
                             callback(conn, m)
                     }
                 } else {
-                    fmt.Printf("Invalid message: '%V'\n", []byte(text))
+                    //fmt.Printf("Invalid message: '%V'\n", []byte(text))
                 }
             } else {
                 fmt.Printf("Empty message received\n")
