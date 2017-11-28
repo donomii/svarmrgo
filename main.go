@@ -91,16 +91,23 @@ func HandleConnection(conn net.Conn, Q chan message) {
 //Command line must be "program host port" where host and port are the connection details for the svarmr server
 func CliConnect() net.Conn {
 	if len(os.Args) < 2 {
+		//I guess we're not using svarmr to launch this, act normally
 		log.Println("Use: \"svarmrModule  host:port\" where host: server ip, port: server port")
 		log.Println("or \"svarmrModule pipes\" for pipe IO.")
-		os.Exit(1)
-	}
-	if os.Args[1] == "pipes" {
-		return nil
+		//os.Exit(1)
 	} else {
-		serverPort := os.Args[1]
-		return ConnectHub(serverPort)
+		if os.Args[1] == "pipes" {
+			return nil
+		} else {
+			if strings.Index(os.Args[1], ":") > -1 {
+				serverPort := os.Args[1]
+				return ConnectHub(serverPort)
+			} else {
+				return nil
+			}
+		}
 	}
+	return nil //Find some way to shutdown svarmrgo without using global variables
 }
 
 //Connect to a svarmr server on host:port
@@ -151,6 +158,10 @@ func SendMessage(conn net.Conn, m Message) {
 	} else {
 		fmt.Fprintf(conn, out)
 	}
+}
+
+func SimpleSend(conn net.Conn, selector, arg string) {
+	SendMessage(conn, Message{conn, selector, arg,  map[string]string{}})
 }
 
 type SubProx struct {
