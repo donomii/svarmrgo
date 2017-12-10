@@ -24,6 +24,7 @@ type Message struct {
 	Conn      net.Conn
 	Selector  string
 	Arg       string
+	Args	  []string
 	NamedArgs map[string]string
 }
 
@@ -161,7 +162,7 @@ func SendMessage(conn net.Conn, m Message) {
 }
 
 func SimpleSend(conn net.Conn, selector, arg string) {
-	SendMessage(conn, Message{conn, selector, arg,  map[string]string{}})
+	SendMessage(conn, Message{conn, selector, arg,  []string{}, map[string]string{}})
 }
 
 type SubProx struct {
@@ -177,7 +178,7 @@ type SubProx struct {
 //
 //    func handleMessage (conn net.Conn, m svarmrgo.Message)
 func HandleInputs(conn net.Conn, callback MessageHandler) {
-	//fmt.Sprintf("%V", conn)
+	fmt.Sprintf("%V", conn)
 	//time.Sleep(500 * time.Millisecond)
 	r := bufio.NewReader(conn)
 	for {
