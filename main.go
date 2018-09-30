@@ -12,9 +12,11 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"flag"
 	//    "time"
 )
 
+var AppDir, SvarmrDir string
 type message struct {
 	port net.Conn
 	raw  string
@@ -91,29 +93,28 @@ func HandleConnection(conn net.Conn, Q chan message) {
 //
 //Command line must be "program host port" where host and port are the connection details for the svarmr server
 func CliConnect() net.Conn {
-	if len(os.Args) < 2 {
-		//I guess we're not using svarmr to launch this, act normally
-		log.Println("Use: \"svarmrModule  host:port\" where host: server ip, port: server port")
-		log.Println("or \"svarmrModule pipes\" for pipe IO.")
+	Server := ""
+	Port := "-1"
+	AppDir = "./"
+	SvarmrDir = "./"
+	flag.StringVar(&Server, "server", "", "svarmr server address")
+	flag.StringVar(&Port, "port", "", "svarmr server port")
+	flag.StringVar(&AppDir, "appdir", "./", "Full path to applicaton directory")
+	flag.StringVar(&SvarmrDir, "svarmrdir", "./", "Full path to svarmr directory")
+	flag.Parse()
+		//I guess we're not using svarmr to launch this, we might be debugging or running outside svarmr
+		//log.Println("Use: \"svarmrModule  host:port\" where host: server ip, port: server port")
+		//log.Println("or \"svarmrModule pipes\" for pipe IO.")
 		//os.Exit(1)
-	} else {
-		if os.Args[1] == "pipes" {
-			return nil
-		} else {
-			if strings.Index(os.Args[1], ":") > -1 {
-				serverPort := os.Args[1]
-				return ConnectHub(serverPort)
-			} else {
-				return nil
-			}
-		}
+	if Port != "-1" && Server != "" {
+		return ConnectHub(Server, Port)
 	}
 	return nil //Find some way to shutdown svarmrgo without using global variables
 }
 
 //Connect to a svarmr server on host:port
-func ConnectHub(connString string) net.Conn {
-	conn, err := net.Dial("tcp", connString)
+func ConnectHub(server, port string) net.Conn {
+	conn, err := net.Dial("tcp", server + ":" + port)
 	if err != nil {
 		log.Printf("\nCould not connect to hub because: %v\n\n", err)
 		os.Exit(1)
