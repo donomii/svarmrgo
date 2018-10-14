@@ -37,11 +37,11 @@ type MessageHandler2 func(Message) []Message
 var connList []net.Conn
 
 func Debug(s string) {
-	//fmt.Println(s)
+	log.Println(s)
 }
 
 func debug(s string) {
-	//fmt.Println(s)
+	log.Println(s)
 }
 
 //Run exec.Cmd, capture and return STDOUT
@@ -173,40 +173,6 @@ type SubProx struct {
 	Cmd *exec.Cmd
 }
 
-//Handle incoming messages.  This will read a message, unpack the JSON, and call the MessageHandler with the unpacked message
-//
-// MessageHandler must look like:
-//
-//    func handleMessage (conn net.Conn, m svarmrgo.Message)
-func HandleInputs(conn net.Conn, callback MessageHandler) {
-	fmt.Sprintf("%V", conn)
-	//time.Sleep(500 * time.Millisecond)
-	r := bufio.NewReader(conn)
-	for {
-		debug("Outer handle inputs loop")
-		l, err := r.ReadString('\n')
-		if err != nil {
-			os.Exit(1)
-		}
-		if l != "" {
-			var text = l
-			if len(text) > 10 {
-				var m Message
-				err := json.Unmarshal([]byte(text), &m)
-				if err != nil {
-					log.Println("error decoding message!:", err)
-				} else {
-					m.Conn = conn
-					callback(conn, m)
-				}
-			} else {
-				log.Printf("Invalid message: '%V'\n", []byte(text))
-			}
-		} else {
-			log.Printf("Empty message received\n")
-		}
-	}
-}
 
 //Handle incoming messages.  This will read a message, unpack the JSON, and call the MessageHandler with the unpacked message
 //
