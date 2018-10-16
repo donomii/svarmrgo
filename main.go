@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -12,11 +13,11 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"flag"
 	//    "time"
 )
 
 var AppDir, SvarmrDir string
+
 type message struct {
 	port net.Conn
 	raw  string
@@ -26,7 +27,7 @@ type Message struct {
 	Conn      net.Conn
 	Selector  string
 	Arg       string
-	Args	  []string
+	Args      []string
 	NamedArgs map[string]string
 }
 
@@ -102,10 +103,10 @@ func CliConnect() net.Conn {
 	flag.StringVar(&AppDir, "appdir", "./", "Full path to applicaton directory")
 	flag.StringVar(&SvarmrDir, "svarmrdir", "./", "Full path to svarmr directory")
 	flag.Parse()
-		//I guess we're not using svarmr to launch this, we might be debugging or running outside svarmr
-		//log.Println("Use: \"svarmrModule  host:port\" where host: server ip, port: server port")
-		//log.Println("or \"svarmrModule pipes\" for pipe IO.")
-		//os.Exit(1)
+	//I guess we're not using svarmr to launch this, we might be debugging or running outside svarmr
+	//log.Println("Use: \"svarmrModule  host:port\" where host: server ip, port: server port")
+	//log.Println("or \"svarmrModule pipes\" for pipe IO.")
+	//os.Exit(1)
 	if Port != "-1" && Server != "" {
 		return ConnectHub(Server, Port)
 	}
@@ -114,7 +115,7 @@ func CliConnect() net.Conn {
 
 //Connect to a svarmr server on host:port
 func ConnectHub(server, port string) net.Conn {
-	conn, err := net.Dial("tcp", server + ":" + port)
+	conn, err := net.Dial("tcp", server+":"+port)
 	if err != nil {
 		log.Printf("\nCould not connect to hub because: %v\n\n", err)
 		os.Exit(1)
@@ -163,7 +164,7 @@ func SendMessage(conn net.Conn, m Message) {
 }
 
 func SimpleSend(conn net.Conn, selector, arg string) {
-	SendMessage(conn, Message{conn, selector, arg,  []string{}, map[string]string{}})
+	SendMessage(conn, Message{conn, selector, arg, []string{}, map[string]string{}})
 }
 
 type SubProx struct {
@@ -172,7 +173,6 @@ type SubProx struct {
 	Err io.ReadCloser
 	Cmd *exec.Cmd
 }
-
 
 //Handle incoming messages.  This will read a message, unpack the JSON, and call the MessageHandler with the unpacked message
 //
@@ -211,7 +211,7 @@ func HandleInputLoop(conn net.Conn, callback MessageHandler2) {
 						}
 					}
 				} else {
-					log.Printf("Invalid message: '%V'\n", []byte(text))
+					log.Printf("Invalid message: '%v'\n", text)
 				}
 			} else {
 				log.Printf("Empty message received\n")
@@ -239,7 +239,7 @@ func HandleInputLoop(conn net.Conn, callback MessageHandler2) {
 						}
 					}
 				} else {
-					log.Printf("Invalid message: '%V'\n", []byte(text))
+					log.Printf("Invalid message: '%v'\n", text)
 				}
 			} else {
 				log.Printf("Empty message received\n")
