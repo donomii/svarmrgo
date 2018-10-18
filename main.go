@@ -4,7 +4,9 @@ package svarmrgo
 import (
 	"bufio"
 	"bytes"
+	//"encoding/base64"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -12,11 +14,11 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"flag"
 	//    "time"
 )
 
 var AppDir, SvarmrDir string
+
 type message struct {
 	port net.Conn
 	raw  string
@@ -26,7 +28,7 @@ type Message struct {
 	Conn      net.Conn
 	Selector  string
 	Arg       string
-	Args	  []string
+	Args      []string
 	NamedArgs map[string]string
 }
 
@@ -102,10 +104,10 @@ func CliConnect() net.Conn {
 	flag.StringVar(&AppDir, "appdir", "./", "Full path to applicaton directory")
 	flag.StringVar(&SvarmrDir, "svarmrdir", "./", "Full path to svarmr directory")
 	flag.Parse()
-		//I guess we're not using svarmr to launch this, we might be debugging or running outside svarmr
-		//log.Println("Use: \"svarmrModule  host:port\" where host: server ip, port: server port")
-		//log.Println("or \"svarmrModule pipes\" for pipe IO.")
-		//os.Exit(1)
+	//I guess we're not using svarmr to launch this, we might be debugging or running outside svarmr
+	//log.Println("Use: \"svarmrModule  host:port\" where host: server ip, port: server port")
+	//log.Println("or \"svarmrModule pipes\" for pipe IO.")
+	//os.Exit(1)
 	if Port != "-1" && Server != "" {
 		return ConnectHub(Server, Port)
 	}
@@ -114,7 +116,7 @@ func CliConnect() net.Conn {
 
 //Connect to a svarmr server on host:port
 func ConnectHub(server, port string) net.Conn {
-	conn, err := net.Dial("tcp", server + ":" + port)
+	conn, err := net.Dial("tcp", server+":"+port)
 	if err != nil {
 		log.Printf("\nCould not connect to hub because: %v\n\n", err)
 		os.Exit(1)
@@ -163,7 +165,7 @@ func SendMessage(conn net.Conn, m Message) {
 }
 
 func SimpleSend(conn net.Conn, selector, arg string) {
-	SendMessage(conn, Message{conn, selector, arg,  []string{}, map[string]string{}})
+	SendMessage(conn, Message{conn, selector, arg, []string{}, map[string]string{}})
 }
 
 type SubProx struct {
@@ -172,7 +174,6 @@ type SubProx struct {
 	Err io.ReadCloser
 	Cmd *exec.Cmd
 }
-
 
 //Handle incoming messages.  This will read a message, unpack the JSON, and call the MessageHandler with the unpacked message
 //
@@ -183,6 +184,11 @@ type SubProx struct {
 // We call handleMessage with a message, and it returns an array of svarmrgo.Message
 // We then send all the returned messages
 func HandleInputLoop(conn net.Conn, callback MessageHandler2) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Error handling incoming messages: ", r)
+		}
+	}()
 	//fmt.Sprintf("%V", conn)
 	//time.Sleep(500 * time.Millisecond)
 	var r *bufio.Reader
@@ -194,6 +200,7 @@ func HandleInputLoop(conn net.Conn, callback MessageHandler2) {
 			debug("Outer handle inputs loop")
 			l, err := r.ReadString('\n')
 			if err != nil {
+				log.Println(err)
 				os.Exit(1)
 			}
 			if l != "" {
@@ -220,10 +227,13 @@ func HandleInputLoop(conn net.Conn, callback MessageHandler2) {
 	} else {
 
 		log.Println("Using pipes")
-		scanner := bufio.NewScanner(os.Stdin)
-		for scanner.Scan() {
-			l := scanner.Text() // Println will add back the final '\n'
-
+		r = bufio.NewReader(os.Stdin)
+		for {
+			l, err := r.ReadString('\n')
+			if err != nil {
+				log.Println(err)
+				os.Exit(1)
+			}
 			if l != "" {
 				var text = l
 				if len(text) > 10 {
@@ -245,8 +255,6 @@ func HandleInputLoop(conn net.Conn, callback MessageHandler2) {
 				log.Printf("Empty message received\n")
 			}
 		}
-		if err := scanner.Err(); err != nil {
-			fmt.Fprintln(os.Stderr, "reading standard input:", err)
-		}
+
 	}
 }
