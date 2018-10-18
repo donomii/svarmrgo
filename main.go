@@ -218,7 +218,7 @@ func HandleInputLoop(conn net.Conn, callback MessageHandler2) {
 						}
 					}
 				} else {
-					log.Printf("Invalid message: '%V'\n", []byte(text))
+					log.Printf("Invalid message: '%v'\n", text)
 				}
 			} else {
 				log.Printf("Empty message received\n")
@@ -249,7 +249,7 @@ func HandleInputLoop(conn net.Conn, callback MessageHandler2) {
 						}
 					}
 				} else {
-					log.Printf("Invalid message: '%V'\n", []byte(text))
+					log.Printf("Invalid message: '%v'\n", text)
 				}
 			} else {
 				log.Printf("Empty message received\n")
