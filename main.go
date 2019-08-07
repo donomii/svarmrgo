@@ -209,7 +209,7 @@ func HandleInputLoop(conn net.Conn, callback MessageHandler2) {
 					var m Message
 					err := json.Unmarshal([]byte(text), &m)
 					if err != nil {
-						log.Println("error decoding message!:", err)
+						log.Println("error decoding message!:", err, text)
 					} else {
 						m.Conn = conn
 						messages := callback(m)
@@ -240,7 +240,7 @@ func HandleInputLoop(conn net.Conn, callback MessageHandler2) {
 					var m Message
 					err := json.Unmarshal([]byte(text), &m)
 					if err != nil {
-						log.Println("error decoding message!:", err)
+						log.Println("error decoding message!:", err, text)
 					} else {
 						m.Conn = conn
 						messages := callback(m)
