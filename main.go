@@ -3,7 +3,6 @@ package svarmrgo
 
 import (
 	"bufio"
-	"bytes"
 	//"encoding/base64"
 	"encoding/json"
 	"flag"
@@ -13,7 +12,6 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"strings"
 	//    "time"
 )
 
@@ -46,38 +44,6 @@ func debug(s string) {
 	log.Println(s)
 }
 
-//Run exec.Cmd, capture and return STDOUT
-func QuickCommandStdout(cmd *exec.Cmd) string {
-	in := strings.NewReader("")
-	cmd.Stdin = in
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	var err bytes.Buffer
-	cmd.Stderr = &err
-	//res := cmd.Run()
-	cmd.Run()
-	//fmt.Printf("Command result: %v\n", res)
-	ret := fmt.Sprintf("%s", out)
-	//fmt.Println(ret)
-	return ret
-}
-
-//Run exec.Cmd, capture and return STDERR
-func QuickCommandStderr(cmd *exec.Cmd) string {
-
-	in := strings.NewReader("")
-	cmd.Stdin = in
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	var err bytes.Buffer
-	cmd.Stderr = &err
-	cmd.Run()
-	//fmt.Printf("Command result: %v\n", res)
-	ret := fmt.Sprintf("%s", err)
-	//fmt.Println(ret)
-	return ret
-}
-
 func HandleConnection(conn net.Conn, Q chan message) {
 	scanner := bufio.NewScanner(conn)
 	for {
@@ -95,8 +61,6 @@ func HandleConnection(conn net.Conn, Q chan message) {
 //
 //Command line must be "program host port" where host and port are the connection details for the svarmr server
 func CliConnect() net.Conn {
-	Server := ""
-	Port := "-1"
 	AppDir = "./"
 	SvarmrDir = "./"
 	flag.StringVar(&Server, "server", "", "svarmr server address")
