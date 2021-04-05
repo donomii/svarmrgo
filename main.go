@@ -63,8 +63,6 @@ func HandleConnection(conn net.Conn, Q chan message) {
 func CliConnect() net.Conn {
 	AppDir = "./"
 	SvarmrDir = "./"
-	flag.StringVar(&Server, "server", "", "svarmr server address")
-	flag.StringVar(&Port, "port", "", "svarmr server port")
 	flag.StringVar(&AppDir, "appdir", "./", "Full path to applicaton directory")
 	flag.StringVar(&SvarmrDir, "svarmrdir", "./", "Full path to svarmr directory")
 	flag.Parse()
@@ -72,9 +70,6 @@ func CliConnect() net.Conn {
 	//log.Println("Use: \"svarmrModule  host:port\" where host: server ip, port: server port")
 	//log.Println("or \"svarmrModule pipes\" for pipe IO.")
 	//os.Exit(1)
-	if Port != "-1" && Server != "" {
-		return ConnectHub(Server, Port)
-	}
 	return nil //Find some way to shutdown svarmrgo without using global variables
 }
 
